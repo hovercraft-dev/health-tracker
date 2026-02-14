@@ -59,14 +59,24 @@ def health_check():
 
 # ─── Seed data on first run ─────────────────────────────────
 
-SEED_FILE = os.path.join(os.path.dirname(__file__), 'data.json')
+# Use example data for public repository, users can replace with their own data
+EXAMPLE_SEED_FILE = os.path.join(os.path.dirname(__file__), 'example_data.json')
+USER_SEED_FILE = os.path.join(os.path.dirname(__file__), 'data.json')
 
 def seed_if_empty():
     """Copy seed data to data volume on first run."""
-    if not os.path.exists(DATA_FILE) and os.path.exists(SEED_FILE):
-        import shutil
-        shutil.copy2(SEED_FILE, DATA_FILE)
-        print(f'[HealthOS] Seeded data from {SEED_FILE}')
+    if not os.path.exists(DATA_FILE):
+        # Try user data first, then example data
+        if os.path.exists(USER_SEED_FILE):
+            import shutil
+            shutil.copy2(USER_SEED_FILE, DATA_FILE)
+            print(f'[HealthOS] Seeded data from user data.json')
+        elif os.path.exists(EXAMPLE_SEED_FILE):
+            import shutil
+            shutil.copy2(EXAMPLE_SEED_FILE, DATA_FILE)
+            print(f'[HealthOS] Seeded data from example_data.json (demo data)')
+        else:
+            print(f'[HealthOS] No seed data found, starting with empty dataset')
 
 
 # ─── Static files (PWA) ─────────────────────────────────────

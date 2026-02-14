@@ -278,30 +278,23 @@ function renderMacros() {
     $('avgProtein').textContent = Math.round(totalProt / logs.length) + 'g';
 }
 
-// ─── Trend Chart (Weight + Waist, dual Y-axis) ─────────────
+// ─── Trend Chart (Weight only) ──────────────────────────────
 
 function renderTrendChart(wEntries, waistEntries) {
     const ctx = $('trendChart').getContext('2d');
 
     // Get data for selected range
-    let wData, waData;
+    let wData;
     if (currentRange === 'all') {
         // Filter to recent journey only (Nov 2025+)
         wData = wEntries.filter(d => d.date >= '2025-11-01');
-        waData = waistEntries.filter(d => d.date >= '2025-11-01');
     } else {
         wData = wEntries.slice(-currentRange);
-        waData = waistEntries.slice(-currentRange);
     }
 
     // Build unified label set from weight dates
     const labels = wData.map(d => d.date);
     const weightValues = wData.map(d => d.weight);
-
-    // Map waist to same date axis (sparse)
-    const waistMap = {};
-    waData.forEach(d => { waistMap[d.date] = d.waist_cm; });
-    const waistValues = labels.map(d => waistMap[d] || null);
 
     if (trendChart) trendChart.destroy();
 
@@ -322,20 +315,6 @@ function renderTrendChart(wEntries, waistEntries) {
                     pointBackgroundColor: '#3b82f6',
                     fill: true,
                     yAxisID: 'y'
-                },
-                {
-                    label: 'Waist (cm)',
-                    data: waistValues,
-                    borderColor: '#10b981',
-                    borderWidth: 2,
-                    borderDash: [4, 3],
-                    tension: 0.35,
-                    pointRadius: currentRange === 'all' ? 0 : 3,
-                    pointHoverRadius: 5,
-                    pointBackgroundColor: '#10b981',
-                    fill: false,
-                    spanGaps: true,
-                    yAxisID: 'y1'
                 }
             ]
         },
@@ -413,16 +392,6 @@ function renderTrendChart(wEntries, waistEntries) {
                     title: {
                         display: false
                     }
-                },
-                y1: {
-                    position: 'right',
-                    grid: { display: false },
-                    ticks: {
-                        color: 'rgba(16,185,129,0.6)',
-                        font: { size: 11 },
-                        callback: v => v + 'cm'
-                    },
-                    title: { display: false }
                 },
                 x: {
                     grid: { display: false },

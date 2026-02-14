@@ -1,0 +1,8 @@
+date,weight,notes,type,waist_cm,hips_cm,biceps_l,biceps_r,calories,protein_g,carbs_g,fat_g
+2023-01-01,85.0,New Year resolution start,weight_history,95.0,105.0,32.0,31.5,2200,150,200,80
+2023-01-15,83.5,Two weeks progress,weight_history,94.0,104.0,32.5,32.0,2100,160,180,70
+2023-02-01,82.0,One month milestone,weight_history,92.5,103.0,33.0,32.5,2000,165,160,65
+2023-02-15,81.0,Continuing progress,weight_history,91.0,102.0,33.5,33.0,1950,170,150,60
+2023-03-01,80.0,Two months - goal achieved,weight_history,90.0,101.0,34.0,33.5,1900,175,140,55
+2023-03-15,79.5,Maintenance phase,weight_history,89.5,100.5,34.5,34.0,2000,160,180,70
+2023-04-01,79.0,Stable maintenance,weight_history,89.0,100.0,35.0,34.5,2050,155,190,75

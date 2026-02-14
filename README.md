@@ -82,15 +82,21 @@ Simply upload all files to your web server's public directory.
 health-tracker/
 ├── index.html              # Main PWA interface
 ├── app.js                  # Core application logic (644 lines)
-├── data.json               # Example/seed data (historical data from 2012-present)
+├── example_data.json       # Example dataset (synthetic demo data)
 ├── manifest.json           # PWA configuration
 ├── sw.js                   # Service worker for offline support
 ├── server.py               # Optional Flask backend
 ├── requirements.txt        # Python dependencies
 ├── README.md               # This file
 ├── LICENSE                 # MIT License
-└── .gitignore             # Git ignore patterns
+└── .gitignore             # Git ignore patterns (excludes personal data)
 ```
+
+### Data Files
+- `example_data.json` - Synthetic demo data included in repository
+- `data.json` - **Your personal data** (excluded via .gitignore, create your own)
+- `consolidated_health_data.csv` - Consolidated data export (excluded)
+- `consolidated_health_data.json` - Consolidated JSON export (excluded)
 
 ### Optional Analysis Scripts
 The repository includes Python scripts for advanced data analysis:
@@ -98,6 +104,48 @@ The repository includes Python scripts for advanced data analysis:
 - `analyze_macros.py` - Macro nutrient pattern analysis
 - `estimate_bodyfat.py` - Body fat estimation
 - `process_health_data.py` - Data processing utilities
+
+## 📊 Using Your Own Data
+
+This repository is configured for public sharing with example data. To use your own personal health data:
+
+### Option 1: Static Mode (No Backend)
+1. Create a `data.json` file in the project root with your data
+2. The app will load it automatically from localStorage or your file
+3. Your `data.json` is excluded from Git via `.gitignore`
+
+### Option 2: With Flask Backend
+1. Place your `data.json` in the project root
+2. Start the Flask server: `python server.py`
+3. The server will automatically seed from your `data.json` on first run
+4. Your data stays local and is never uploaded to GitHub
+
+### Data Format
+Your `data.json` should follow this structure:
+```json
+[
+  {
+    "date": "2023-01-01T00:00:00.000",
+    "weight": 85.0,
+    "notes": "Optional note",
+    "type": "weight_history",
+    "waist_cm": 95.0,
+    "hips_cm": 105.0,
+    "biceps_l": 32.0,
+    "biceps_r": 31.5,
+    "calories": 2200,
+    "protein_g": 150,
+    "carbs_g": 200,
+    "fat_g": 80
+  }
+]
+```
+
+### Privacy Protection
+- Personal data files (`data.json`, `consolidated_health_data.csv`, etc.) are excluded via `.gitignore`
+- The repository includes only synthetic `example_data.json` for demonstration
+- Your personal health data remains on your local machine
+- GitHub Pages deployment uses example data only
 
 ## 🔧 Development
 
@@ -187,6 +235,9 @@ Health check endpoint.
 - **No Analytics**: No tracking or analytics scripts
 - **Export Control**: You own your data, can export anytime
 - **Open Source**: Transparent code, no hidden data collection
+- **GitHub Safe**: Repository contains only example data, personal data excluded via `.gitignore`
+- **Public Repository Ready**: Safe for public GitHub Pages deployment
+- **Your Data Stays Local**: Personal `data.json` never uploaded to GitHub
 
 ## 🐛 Troubleshooting
 
