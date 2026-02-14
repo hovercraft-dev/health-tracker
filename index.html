@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HealthOS</title>
+    <meta name="description" content="Personal health tracker with weight, waist, and macro tracking">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0f1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Chart.js + annotation plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0a0f1a;
+            --card: #111827;
+            --card-hover: #1a2332;
+            --border: #1e293b;
+            --border-light: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --blue: #3b82f6;
+            --blue-glow: rgba(59, 130, 246, 0.15);
+            --green: #10b981;
+            --green-glow: rgba(16, 185, 129, 0.15);
+            --orange: #f59e0b;
+            --red: #ef4444;
+            --purple: #a78bfa;
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+            padding-bottom: 2rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+        }
+
+        /* Inputs */
+        input[type="number"],
+        select {
+            background: #0f172a;
+            border: 1px solid var(--border-light);
+            color: var(--text);
+            border-radius: var(--radius-sm);
+            padding: 0.8rem 1rem;
+            width: 100%;
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px var(--blue-glow);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: inherit;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            color: white;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-muted);
+        }
+
+        .btn-ghost:hover {
+            background: var(--card-hover);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 4px;
+        }
+
+        /* Tab system */
+        .tab-bar {
+            display: flex;
+            gap: 0.25rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-dim);
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--blue);
+            color: white;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Modal backdrop */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal-backdrop .modal-content {
+            background: var(--card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 420px;
+            animation: slideUp 0.25s ease;
+        }
+
+        /* Progress bar */
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: #1e293b;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 0.6s ease;
+        }
+
+        /* History table */
+        .history-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 0.5rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .history-row:last-child {
+            border-bottom: none;
+        }
+
+        .history-row.header {
+            color: var(--text-dim);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Legend dots */
+        .legend-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header
+        style="position:sticky;top:0;z-index:50;background:rgba(10,15,26,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;">
+        <h1 style="font-size:1.2rem;font-weight:800;display:flex;align-items:center;gap:0.5rem;">
+            <i data-lucide="heart-pulse" style="color:var(--blue);width:22px;height:22px;"></i>
+            HealthOS
+        </h1>
+        <button id="refreshBtn" class="btn btn-ghost" style="padding:0.4rem;">
+            <i data-lucide="refresh-cw" style="width:18px;height:18px;"></i>
+        </button>
+        <div id="syncStatus"
+            style="display:flex;align-items:center;gap:4px;font-size:0.7rem;color:var(--text-dim);padding:0.2rem 0.5rem;border-radius:99px;background:rgba(255,255,255,0.04);"
+            title="Sync status">
+            <i data-lucide="cloud" style="width:12px;height:12px;"></i>
+            <span id="syncLabel">--</span>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main style="max-width:440px;margin:0 auto;padding:1rem 1rem 2rem;display:flex;flex-direction:column;gap:1.25rem;">
+
+        <!-- Hero Card: Current Weight -->
+        <div class="card fade-in"
+            style="background:linear-gradient(145deg, #111d35, #0f172a);border-color:#1e3a5f;position:relative;overflow:hidden;">
+            <div
+                style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(59,130,246,0.08),transparent 70%);">
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                    <div style="color:var(--text-dim);font-size:0.8rem;font-weight:500;margin-bottom:0.25rem;">Current
+                        Weight</div>
+                    <div style="display:flex;align-items:baseline;gap:0.4rem;">
+                        <span id="currentWeight" style="font-size:3rem;font-weight:800;letter-spacing:-1px;">--.-</span>
+                        <span style="font-size:1.1rem;color:var(--text-muted);font-weight:500;">kg</span>
+                    </div>
+                </div>
+                <div id="trendIndicator"
+                    style="display:flex;align-items:center;gap:4px;padding:0.3rem 0.6rem;border-radius:99px;font-size:0.8rem;font-weight:600;background:rgba(16,185,129,0.12);color:var(--green);margin-top:0.5rem;">
+                    <i data-lucide="minus" style="width:14px;height:14px;"></i> --
+                </div>
+            </div>
+
+            <div
+                style="display:flex;gap:1.5rem;margin-top:1.25rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.06);">
+                <div>
+                    <div style="color:var(--text-dim);font-size:0.75rem;font-weight:500;">Waist</div>
+                    <div id="currentWaist" style="font-size:1.2rem;font-weight:700;margin-top:2px;">--</div>
+                </div>
+                <div>
+                    <div style="color:var(--text-dim);font-size:0.75rem;font-weight:500;">BMI</div>
+                    <div id="currentBMI" style="font-size:1.2rem;font-weight:700;margin-top:2px;">--</div>
+                </div>
+                <div style="margin-left:auto;text-align:right;">
+                    <div style="color:var(--text-dim);font-size:0.75rem;font-weight:500;">Last Logged</div>
+                    <div id="lastLogDate"
+                        style="font-size:1.2rem;font-weight:700;margin-top:2px;color:var(--text-muted);">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Goal Milestones -->
+        <div class="card fade-in" style="animation-delay:0.05s;">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
+                <i data-lucide="target" style="width:16px;height:16px;color:var(--blue);"></i>
+                <span style="font-weight:700;font-size:0.9rem;">Goal Progress</span>
+            </div>
+            <!-- Primary Goal -->
+            <div style="margin-bottom:1rem;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.4rem;">
+                    <span style="font-size:0.8rem;font-weight:600;color:var(--blue);">Primary: 100kg</span>
+                    <span id="goal1Remaining" style="font-size:0.8rem;font-weight:600;color:var(--text-muted);">-- to
+                        go</span>
+                </div>
+                <div class="progress-track">
+                    <div id="goal1Bar" class="progress-fill"
+                        style="width:0%;background:linear-gradient(90deg,#3b82f6,#60a5fa);"></div>
+                </div>
+            </div>
+            <!-- Secondary Goal -->
+            <div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.4rem;">
+                    <span style="font-size:0.8rem;font-weight:600;color:var(--purple);">Secondary: 95kg</span>
+                    <span id="goal2Remaining" style="font-size:0.8rem;font-weight:600;color:var(--text-muted);">-- to
+                        go</span>
+                </div>
+                <div class="progress-track">
+                    <div id="goal2Bar" class="progress-fill"
+                        style="width:0%;background:linear-gradient(90deg,#a78bfa,#c4b5fd);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Metrics -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;" class="fade-in"
+            style="animation-delay:0.1s;">
+            <div class="card" style="text-align:center;">
+                <div
+                    style="font-size:0.7rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.5rem;">
+                    Avg Calories</div>
+                <div id="avgCals" style="font-size:1.6rem;font-weight:800;color:var(--orange);">--</div>
+                <div style="font-size:0.7rem;color:var(--text-dim);margin-top:0.25rem;">/ 2400 target</div>
+            </div>
+            <div class="card" style="text-align:center;">
+                <div
+                    style="font-size:0.7rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.5rem;">
+                    Avg Protein</div>
+                <div id="avgProtein" style="font-size:1.6rem;font-weight:800;color:var(--green);">--</div>
+                <div style="font-size:0.7rem;color:var(--text-dim);margin-top:0.25rem;">/ 180g target</div>
+            </div>
+        </div>
+
+        <!-- Log Button -->
+        <button id="logBtn" class="btn btn-primary fade-in"
+            style="width:100%;padding:1rem;font-size:1rem;border-radius:var(--radius-sm);animation-delay:0.15s;">
+            <i data-lucide="plus-circle" style="width:20px;height:20px;"></i>
+            Log Today
+        </button>
+
+        <!-- Chart Card -->
+        <div class="card fade-in" style="animation-delay:0.2s;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <i data-lucide="trending-down" style="width:16px;height:16px;color:var(--green);"></i>
+                    <span style="font-weight:700;font-size:0.9rem;">Trends</span>
+                </div>
+                <div class="tab-bar" style="width:auto;">
+                    <button class="tab-btn active" data-range="30">30d</button>
+                    <button class="tab-btn" data-range="90">90d</button>
+                    <button class="tab-btn" data-range="all">All</button>
+                </div>
+            </div>
+            <!-- Chart legends -->
+            <div style="display:flex;gap:1rem;margin-bottom:0.75rem;font-size:0.75rem;color:var(--text-muted);">
+                <span><span class="legend-dot" style="background:var(--blue);"></span>Weight</span>
+                <span><span class="legend-dot" style="background:var(--green);"></span>Waist</span>
+                <span><span class="legend-dot"
+                        style="background:var(--blue);opacity:0.4;border:1px dashed var(--blue);"></span>100kg</span>
+                <span><span class="legend-dot"
+                        style="background:var(--purple);opacity:0.4;border:1px dashed var(--purple);"></span>95kg</span>
+            </div>
+            <div style="height:260px;">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Waist Chart Card -->
+        <div class="card fade-in" style="animation-delay:0.25s;">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+                <i data-lucide="ruler" style="width:16px;height:16px;color:var(--green);"></i>
+                <span style="font-weight:700;font-size:0.9rem;">Waist Trend</span>
+            </div>
+            <div style="height:200px;">
+                <canvas id="waistChart"></canvas>
+            </div>
+        </div>
+
+        <!-- History / Log -->
+        <div class="card fade-in" style="animation-delay:0.3s;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <i data-lucide="history" style="width:16px;height:16px;color:var(--text-muted);"></i>
+                    <span style="font-weight:700;font-size:0.9rem;">Recent Entries</span>
+                </div>
+                <span id="entryCount" style="font-size:0.75rem;color:var(--text-dim);"></span>
+            </div>
+            <div id="historyList" style="max-height:320px;overflow-y:auto;">
+                <div class="history-row header">
+                    <span>Date</span>
+                    <span>Weight</span>
+                    <span>Waist</span>
+                    <span>Cal / Prot</span>
+                </div>
+                <!-- populated by JS -->
+            </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="card fade-in" style="animation-delay:0.35s;">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+                <i data-lucide="database" style="width:16px;height:16px;color:var(--text-muted);"></i>
+                <span style="font-weight:700;font-size:0.9rem;">Data</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                <button id="exportBtn" class="btn btn-ghost" style="padding:0.6rem;font-size:0.85rem;">
+                    <i data-lucide="download" style="width:14px;height:14px;"></i> Export
+                </button>
+                <label class="btn btn-ghost" style="padding:0.6rem;font-size:0.85rem;cursor:pointer;">
+                    <i data-lucide="upload" style="width:14px;height:14px;"></i> Import
+                    <input type="file" id="importFile" style="display:none;" accept=".json">
+                </label>
+            </div>
+            <div style="font-size:0.7rem;color:var(--text-dim);text-align:center;margin-top:0.75rem;">
+                <span id="syncInfo">Synced to server · backed up via Cloud Sync</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Log Modal -->
+    <div id="logModal" class="modal-backdrop">
+        <div class="modal-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+                <h2 style="font-size:1.1rem;font-weight:700;">Log Entry</h2>
+                <button id="closeLogBtn" class="btn btn-ghost" style="padding:0.3rem;">
+                    <i data-lucide="x" style="width:18px;height:18px;"></i>
+                </button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:1rem;">
+                <div>
+                    <label
+                        style="display:block;font-size:0.8rem;color:var(--text-muted);font-weight:500;margin-bottom:0.3rem;">Weight
+                        (kg)</label>
+                    <input type="number" id="inputWeight" step="0.1" inputmode="decimal" placeholder="e.g. 104.5">
+                </div>
+                <div>
+                    <label
+                        style="display:block;font-size:0.8rem;color:var(--text-muted);font-weight:500;margin-bottom:0.3rem;">Waist
+                        (cm)</label>
+                    <input type="number" id="inputWaist" step="0.1" inputmode="decimal" placeholder="e.g. 100.0">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                    <div>
+                        <label
+                            style="display:block;font-size:0.8rem;color:var(--text-muted);font-weight:500;margin-bottom:0.3rem;">Calories</label>
+                        <input type="number" id="inputCals" inputmode="numeric" placeholder="e.g. 2400">
+                    </div>
+                    <div>
+                        <label
+                            style="display:block;font-size:0.8rem;color:var(--text-muted);font-weight:500;margin-bottom:0.3rem;">Protein
+                            (g)</label>
+                        <input type="number" id="inputProtein" inputmode="numeric" placeholder="e.g. 180">
+                    </div>
+                </div>
+
+                <button id="saveLogBtn" class="btn btn-primary"
+                    style="padding:0.9rem;font-size:1rem;margin-top:0.5rem;">
+                    Save Entry
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => { });
+            });
+        }
+    </script>
+</body>
+
+</html>
