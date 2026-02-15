@@ -197,6 +197,7 @@ function render() {
     renderMacros();
     renderTrendChart(weightEntries, waistEntries);
     renderWaistChart(waistEntries);
+    renderHistoricalChart();
     renderHistory();
 }
 
@@ -286,8 +287,8 @@ function renderTrendChart(wEntries, waistEntries) {
     // Get data for selected range
     let wData;
     if (currentRange === 'all') {
-        // Filter to recent journey only (Nov 2025+)
-        wData = wEntries.filter(d => d.date >= '2025-11-01');
+        // Filter to recent journey only (mid-Nov 2025+)
+        wData = wEntries.filter(d => d.date >= '2025-11-15');
     } else {
         wData = wEntries.slice(-currentRange);
     }
@@ -310,8 +311,8 @@ function renderTrendChart(wEntries, waistEntries) {
                     backgroundColor: 'rgba(59,130,246,0.08)',
                     borderWidth: 2.5,
                     tension: 0.35,
-                    pointRadius: currentRange === 'all' ? 0 : 3,
-                    pointHoverRadius: 5,
+                    pointRadius: currentRange === 'all' ? 0 : 1.5,
+                    pointHoverRadius: 2.5,
                     pointBackgroundColor: '#3b82f6',
                     fill: true,
                     yAxisID: 'y'
@@ -327,6 +328,13 @@ function renderTrendChart(wEntries, waistEntries) {
             },
             plugins: {
                 legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Weight trend',
+                    color: '#f1f5f9',
+                    font: { size: 14, weight: '600' },
+                    padding: { top: 10, bottom: 20 }
+                },
                 tooltip: {
                     backgroundColor: '#1e293b',
                     borderColor: '#334155',
@@ -412,8 +420,8 @@ function renderTrendChart(wEntries, waistEntries) {
 function renderWaistChart(waistEntries) {
     const ctx = $('waistChart').getContext('2d');
 
-    // Show recent journey waist data
-    const data = waistEntries.filter(d => d.date >= '2025-11-01');
+    // Show recent journey waist data (mid-Nov 2025+)
+    const data = waistEntries.filter(d => d.date >= '2025-11-15');
     if (!data.length) return;
 
     const labels = data.map(d => fmtDate(d.date));
@@ -432,8 +440,8 @@ function renderWaistChart(waistEntries) {
                 backgroundColor: 'rgba(16,185,129,0.08)',
                 borderWidth: 2.5,
                 tension: 0.35,
-                pointRadius: 3,
-                pointHoverRadius: 5,
+                pointRadius: 1.5,
+                pointHoverRadius: 2.5,
                 pointBackgroundColor: '#10b981',
                 fill: true
             }]
@@ -469,6 +477,97 @@ function renderWaistChart(waistEntries) {
                         font: { size: 10 },
                         maxRotation: 45,
                         maxTicksLimit: 10
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ─── Historical Chart (2012+ full journey) ──────────────────
+
+let historicalChart = null;
+
+function renderHistoricalChart() {
+    const ctx = $('historicalChart').getContext('2d');
+    
+    // Get all weight entries from 2012 onwards
+    const weightEntries = healthData
+        .filter(d => d.weight && d.date >= '2012-01-01')
+        .sort((a, b) => a.date.localeCompare(b.date));
+    
+    if (!weightEntries.length) return;
+    
+    // For historical view, we want to show yearly trends
+    // Simplify: show all data points but with reduced detail
+    const labels = weightEntries.map(d => {
+        const date = new Date(d.date + 'T00:00:00');
+        // Format as short date for historical view
+        return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+    });
+    
+    const values = weightEntries.map(d => d.weight);
+    
+    if (historicalChart) historicalChart.destroy();
+    
+    historicalChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Weight (kg)',
+                data: values,
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.08)',
+                borderWidth: 1.5,
+                tension: 0.2,
+                pointRadius: 0.5,
+                pointHoverRadius: 2,
+                pointBackgroundColor: '#f59e0b',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    borderColor: '#334155',
+                    borderWidth: 1,
+                    titleColor: '#f1f5f9',
+                    bodyColor: '#94a3b8',
+                    padding: 10,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    callbacks: {
+                        title: function(context) {
+                            const index = context[0].dataIndex;
+                            return weightEntries[index].date;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    grid: { color: 'rgba(51,65,85,0.5)', lineWidth: 0.5 },
+                    ticks: {
+                        color: '#64748b',
+                        font: { size: 10 },
+                        callback: v => v + 'kg'
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        color: '#475569',
+                        font: { size: 9 },
+                        maxRotation: 45,
+                        maxTicksLimit: 15
                     }
                 }
             }

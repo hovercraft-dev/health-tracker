@@ -280,7 +280,7 @@
     <header
         style="position:sticky;top:0;z-index:50;background:rgba(10,15,26,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;">
         <h1 style="font-size:1.2rem;font-weight:800;display:flex;align-items:center;gap:0.5rem;">
-            <i data-lucide="heart-pulse" style="color:var(--blue);width:22px;height:22px;"></i>
+            <i data-lucide="kettlebell" style="color:var(--blue);width:22px;height:22px;"></i>
             HealthOS
         </h1>
         <button id="refreshBtn" class="btn btn-ghost" style="padding:0.4rem;">
@@ -432,6 +432,17 @@
             </div>
         </div>
 
+        <!-- Historical Journey Chart (2012+) -->
+        <div class="card fade-in" style="animation-delay:0.25s;">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+                <i data-lucide="trending-up" style="width:16px;height:16px;color:var(--orange);"></i>
+                <span style="font-weight:700;font-size:0.9rem;">Historical Journey (2012+)</span>
+            </div>
+            <div style="height:200px;">
+                <canvas id="historicalChart"></canvas>
+            </div>
+        </div>
+
         <!-- History / Log -->
         <div class="card fade-in" style="animation-delay:0.3s;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
@@ -514,6 +525,26 @@
                     style="padding:0.9rem;font-size:1rem;margin-top:0.5rem;">
                     Save Entry
                 </button>
+            </div>
+        </div>
+
+        <!-- Lessons Learned -->
+        <div class="card fade-in" style="animation-delay:0.4s; margin-top: 1.5rem;">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+                <i data-lucide="lightbulb" style="width:16px;height:16px;color:var(--orange);"></i>
+                <span style="font-weight:700;font-size:0.9rem;">Lessons Learned</span>
+            </div>
+            <div id="lessonsContent" style="color:var(--text-muted); font-size:0.9rem; line-height:1.5;">
+                <p>Space for insights and lessons from your health journey. This area can be updated with key takeaways from your data analysis.</p>
+                <ul style="margin-top:0.5rem; padding-left:1.2rem;">
+                    <li>Consistency matters more than perfection</li>
+                    <li>Small daily habits compound over time</li>
+                    <li>Protein intake correlates with weight management</li>
+                    <li>Sleep and stress impact weight fluctuations</li>
+                </ul>
+                <p style="margin-top:0.75rem; font-style:italic; color:var(--text-dim);">
+                    Add your own lessons based on your data patterns.
+                </p>
             </div>
         </div>
     </div>
